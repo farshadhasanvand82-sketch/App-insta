@@ -28,6 +28,7 @@ def cleanup_file(file_path: str):
 @app.post("/download/")
 def download_media(url: str, background_tasks: BackgroundTasks):
     try:
+        # پاکسازی فایل‌های قدیمی
         old_files = glob.glob(os.path.join(DOWNLOAD_DIR, "*"))
         for f in old_files:
             try:
@@ -37,16 +38,24 @@ def download_media(url: str, background_tasks: BackgroundTasks):
 
         output_template = os.path.join(DOWNLOAD_DIR, "%(title)s.%(ext)s")
         
-        # استفاده از yt-dlp (حالا با کمک FFmpeg نصب شده در داکر، ویدیو و صدا را بی‌نقص ترکیب می‌کند)
-        command = ["yt-dlp", "-o", output_template, url]
+        # استفاده از yt-dlp با تنظیمات سازگار با اینستاگرام و اسپاتیفای
+        command = [
+            "yt-dlp",
+            "--no-check-certificates",
+            "--geo-bypass",
+            "-o", output_template,
+            url
+        ]
+        
         result = subprocess.run(command, capture_output=True, text=True)
         
         if result.returncode != 0:
-            raise HTTPException(status_code=400, detail="خطا در دانلود لینک. لطفاً لینک معتبر وارد کنید.")
+            print(f"YT-DLP Error: {result.stderr}")
+            raise HTTPException(status_code=400, detail=f"خطا در دانلود: {result.stderr}")
         
         files = os.listdir(DOWNLOAD_DIR)
         if not files:
-            raise HTTPException(status_code=404, detail="فایلی پیدا نشد.")
+            raise HTTPException(status_code=404, detail="فایلی پس از دانلود پیدا نشد.")
             
         latest_file = max([os.path.join(DOWNLOAD_DIR, f) for f in files], key=os.path.getctime)
         
@@ -60,3 +69,7 @@ def download_media(url: str, background_tasks: BackgroundTasks):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/")
+def home():
+    return {"status": "Server is running successfully!"}
