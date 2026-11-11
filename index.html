@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دانلودر هوشمند اینستاگرام و اسپاتیفای</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Tahoma, sans-serif; }
+        body {
+            background: linear-gradient(135deg, #fce4ec, #f3e5f5, #e1f5fe);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+        h2 { margin-bottom: 10px; color: #6a1b9a; font-size: 24px; }
+        p { font-size: 13px; color: #666; margin-bottom: 25px; }
+        .input-group { margin-bottom: 20px; }
+        input[type="text"] {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            outline: none;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #ba68c8, #9c27b0);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { opacity: 0.9; transform: translateY(-2px); }
+        .result-box {
+            margin-top: 20px;
+            display: none;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>📥 دانلودر ابری</h2>
+        <p>لینک اینستاگرام یا اسپاتیفای را وارد کنید</p>
+        
+        <div class="input-group">
+            <input type="text" id="urlInput" placeholder="https://www.instagram.com/p/...">
+        </div>
+        
+        <button onclick="startDownload()">شروع دانلود</button>
+
+        <div class="result-box" id="resultBox">
+            <p id="statusText">⏳ در حال آماده‌سازی فایل روی سرور ابری...</p>
+        </div>
+    </div>
+
+    <script>
+        async function startDownload() {
+            const url = document.getElementById('urlInput').value;
+            const resultBox = document.getElementById('resultBox');
+            const statusText = document.getElementById('statusText');
+
+            if (!url) {
+                alert('لطفاً یک لینک معتبر وارد کنید!');
+                return;
+            }
+
+            resultBox.style.display = 'block';
+            statusText.innerHTML = '⏳ سرور در حال دانلود و پردازش است... لطفاً صبر کنید.';
+
+            try {
+                // بعد از ساخت وب‌سایت در Render، به جای آدرس زیر، آدرس سایت رندر خودتان را قرار دهید
+                const backendUrl = "https://YOUR-RENDER-APP-NAME.onrender.com"; 
+
+                const response = await fetch(`${backendUrl}/download/?url=${encodeURIComponent(url)}`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    throw new Error('خطا در سرور');
+                }
+
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = "downloaded_media";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+
+                statusText.innerHTML = '✅ دانلود با موفقیت انجام شد!';
+            } catch (error) {
+                statusText.innerHTML = '❌ خطا در دانلود. لطفاً لینک را بررسی کنید.';
+            }
+        }
+    </script>
+</body>
+</html>
